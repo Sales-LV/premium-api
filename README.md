@@ -23,8 +23,11 @@ PHP client library
 PHP client library is located in `lib/php/premium-api.php`. An usage example is provided in `lib/php/example.php`.
 
 Requirements:
-* PHP 5.2 or newer
-* pecl_http extension (http://pecl.php.net/package/pecl_http) is recommended (but not mandatory). Your server should have either the pecl_http extension, cURL or allow_url_fopen enabled.
+* [PHP 5.2 or newer](http://www.php.net/)
+* One of these:
+    * [pecl_http](http://pecl.php.net/package/pecl_http) extension is recommended but not mandatory.
+    * enabled [cURL library](http://www.php.net/manual/en/book.curl.php).
+    * [allow_url_fopen](http://php.net/manual/en/filesystem.configuration.php) set to true.
 
 If you need more support
 ------------
