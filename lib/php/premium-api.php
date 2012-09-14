@@ -251,7 +251,7 @@ class PremiumAPI
 	{
 		$Method = $POSTData ? HttpRequest::METH_POST : HttpRequest::METH_GET;
 
-  		$Request = new \HttpRequest($URL, $Method);
+  		$Request = new HttpRequest($URL, $Method);
   		if ($Headers)
   		{
   			$Request -> setHeaders($Headers);
