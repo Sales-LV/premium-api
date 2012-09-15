@@ -1,8 +1,8 @@
 <?php
-	require('lib/premium-api.php');
+	require('premium-api.php');
 
-	define('API_KEY', 'XXXXXXXXXXXXXXXXXX');
-	define('API_CAMPAIGN', 'test');
+	define('API_KEY', '1234567890abcdef');
+	define('API_CAMPAIGN', 'demo');
 
 	function error_output(PremiumAPI $APIObject)
 	{
@@ -41,8 +41,8 @@
 	results_output($Stats);
 
 	// Messages
-	echo '<h2>Message retrieval</h2>';
-	$Messages = $PremiumAPI -> Messages_Get(array(
+	echo '<h2>Message list retrieval</h2>';
+	$Messages = $PremiumAPI -> Messages_List(array(
 		'Time' => date('c', strtotime('2010-02-07'))
 	), array(
 		'Time' => date('c', strtotime('2010-02-09'))
@@ -50,4 +50,10 @@
 	debug_output($PremiumAPI);
 	error_output($PremiumAPI);
 	results_output($Messages);
+
+	echo '<h2>Single message</h2>';
+	$Message = $PremiumAPI -> Messages_Get(93248);
+	debug_output($PremiumAPI);
+	error_output($PremiumAPI);
+	results_output($Message);
 ?>
