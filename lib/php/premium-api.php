@@ -29,6 +29,8 @@ class PremiumAPI
 	const ERROR_REQUEST = 7;
 	// No library for HTTP requests available
 	const ERROR_CANNOT_MAKE_HTTP_REQUEST = 8;
+	// Some or all of mandatory parameters were not provided in the API call
+	const ERROR_INSUFFICIENT_PARAMETERS = 9;
 
 	/**
 	 * @var string API endpoint URL
@@ -113,7 +115,21 @@ class PremiumAPI
 
 	// !Messages
 	/**
-	 * Method for retrieving messages from a campaign by the given parameters
+	 * Method for retrieving a single message
+	 *
+	 * @param int Message ID
+	 *
+	 * @return array Associative array with message data or boolean false if message was not found or inaccessible
+	 */
+	public function Messages_Get($ID)
+	{
+		$Data = $this -> HTTPRequest($this -> APIURL.'Messages:Get/ID:'.(int)$ID);
+		return $this -> ParseResponse($Data);
+	}
+
+
+	/**
+	 * Method for retrieving a message list from a campaign by the given parameters
 	 *
 	 * @param array Associative array with the parameters to filter by. Each value can be a single value or an array of multiple values.
 	 * @param array Another array with parameters in case it is necessary to filter values in a specific range.
@@ -123,10 +139,10 @@ class PremiumAPI
 	 *
 	 * @return array List of messages (an array of associative arrays)
 	 */
-	public function Messages_Get(array $Parameters, array $Parameters2 = null, $Offset = 0)
+	public function Messages_List(array $Parameters, array $Parameters2 = null, $Offset = 0)
 	{
 		$Data = $this -> HTTPRequest(
-			$this -> APIURL.'Messages:Get',
+			$this -> APIURL.'Messages:List',
 			array(
 				'Filter1' => json_encode($Parameters),
 				'Filter2' => $Parameters2 ? json_encode($Parameters2) : false,
@@ -251,7 +267,7 @@ class PremiumAPI
 	{
 		$Method = $POSTData ? HttpRequest::METH_POST : HttpRequest::METH_GET;
 
-  		$Request = new \HttpRequest($URL, $Method);
+  		$Request = new HttpRequest($URL, $Method);
   		if ($Headers)
   		{
   			$Request -> setHeaders($Headers);
