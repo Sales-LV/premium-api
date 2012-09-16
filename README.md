@@ -29,6 +29,8 @@ Requirements:
     * enabled [cURL library](http://www.php.net/manual/en/book.curl.php).
     * [allow_url_fopen](http://php.net/manual/en/filesystem.configuration.php) set to true.
 
+Library usage is [described in the wiki](https://github.com/Sales-LV/premium-api/wiki/PHP-API-library)
+
 If you need more support
 ------------
 
