@@ -2,11 +2,11 @@
 /**
  * Utility class for Premium API connection
  *
- * @version 1.0.0
+ * @version 1.0.1
  */
 class PremiumAPI
 {
-	private static $Version = '1.0.0';
+	private static $Version = '1.0.1';
 	private static $UserAgent = 'SalesLV/Premium-API';
 	private static $VerifySSL = false;
 
@@ -59,9 +59,11 @@ class PremiumAPI
 	private $Error = '';
 
 	public $Debug = array(
-		'LastURL' => '',
-		'LastRequestBody' => array(),
-		'LastResponse' => array()
+		'LastHTTPRequest' => array(
+			'URL' => '',
+			'Request' => array(),
+			'Response' => array()
+		)
 	);
 
 	// !Public utility methods
@@ -81,7 +83,7 @@ class PremiumAPI
 
 	public function __get($Name)
 	{
-		if ($Name == 'Error' || $Name == 'ErrNo')
+		if ($Name == 'Error' || $Name == 'ErrNo' || $Name == 'Debug')
 		{
 			return $this -> {$Name};
 		}
@@ -154,17 +156,6 @@ class PremiumAPI
 	}
 
 	// !Public utility methods
-	public function Debug()
-	{
-		return array(
-			'LastRequest' => array(
-				'URL' => $this -> Debug['LastURL'],
-				'Method' => $this -> Debug['LastRequestMethod'],
-				'Request' => $this -> Debug['LastRequestBody'],
-				'Response' => $this -> Debug['LastResponse']
-			)
-		);
-	}
 
 	// !Private utility methods
 	private function ParseResponse($Response)
@@ -222,10 +213,10 @@ class PremiumAPI
 	 */
 	private function HTTPRequest($URL, array $POSTData = null, array $Headers = null)
 	{
-		$this -> Debug['LastURL'] = $URL;
-		$this -> Debug['LastRequestMethod'] = $POSTData ? 'POST' : 'GET';
-		$this -> Debug['LastRequestBody'] = $POSTData;
-		$this -> Debug['LastResponse'] = '';
+		$this -> Debug['LastHTTPRequest']['URL'] = $URL;
+		$this -> Debug['LastHTTPRequest']['Method'] = $POSTData ? 'POST' : 'GET';
+		$this -> Debug['LastHTTPRequest']['Request'] = $POSTData;
+		$this -> Debug['LastHTTPRequest']['Response'] = '';
 
 		$Result = array();
 
@@ -255,7 +246,7 @@ class PremiumAPI
 		  	return false;
 	  	}
 
-		$this -> Debug['LastResponse'] = $Result;
+	  	$this -> Debug['LastHTTPRequest']['Response'] = $Result;
 
 		return $Result;
 	}
