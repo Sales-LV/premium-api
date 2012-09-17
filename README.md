@@ -19,7 +19,6 @@ A quick start guide
 
 PHP client library
 ------------
-
 PHP client library is located in `lib/php/premium-api.php`. An usage example is provided in `lib/php/example.php`.
 
 Requirements:
@@ -31,7 +30,6 @@ Requirements:
 
 Library usage is [described in the wiki](https://github.com/Sales-LV/premium-api/wiki/PHP-API-library)
 
-If you need more support
+Feedback, support & questions
 ------------
-
-For further assistance, you can write to support@sales.lv
+Please write to support@sales.lv with any feedback, questions or suggestions that might arise.
