@@ -21,7 +21,7 @@
 
 	function debug_output(PremiumAPI $APIObject)
 	{
-		echo '<pre>'.print_r($APIObject -> Debug(), 1).'</pre>';
+		echo '<pre>'.print_r($APIObject -> Debug, 1).'</pre>';
 	}
 
 	$PremiumAPI = new PremiumAPI(API_KEY, API_CAMPAIGN);
