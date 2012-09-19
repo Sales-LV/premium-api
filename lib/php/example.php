@@ -56,4 +56,16 @@
 	debug_output($PremiumAPI);
 	error_output($PremiumAPI);
 	results_output($Message);
+
+	echo '<h2>Create a new message</h2>';
+	$Message = $PremiumAPI -> Messages_Create(array(
+		'Phone' => 21234567,
+		'FirstName' => 'George',
+		'LastName' => 'Fullman',
+		'ReceiptUnique' => '123/456',
+		'IP' => $_SERVER['REMOTE_ADDR']
+	));
+	debug_output($PremiumAPI);
+	error_output($PremiumAPI);
+	results_output($Message);
 ?>
