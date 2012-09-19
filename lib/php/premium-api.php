@@ -31,6 +31,19 @@ class PremiumAPI
 	const ERROR_CANNOT_MAKE_HTTP_REQUEST = 8;
 	// Some or all of mandatory parameters were not provided in the API call
 	const ERROR_INSUFFICIENT_PARAMETERS = 9;
+	// A forbidden operation was tried
+	const ERROR_FORBIDDEN = 10;
+	// Request did not contain expected mandatory parameters
+	const ERROR_REQUIRED_PARAMETERS_MISSING = 11;
+	// For campaigns where value uniqueness is checked (for example, receipt numbers in lotteries) a supposedly unique value was already
+	//	registered.
+	const ERROR_UNIQUE_PARAM_NOT_UNIQUE = 12;
+	// Message was submitted before campaign start
+	const ERROR_BEFORE_CAMPAIGN_START = 13;
+	// Message was submitted after campaign end
+	const ERROR_AFTER_CAMPAIGN_END = 14;
+	// Could not save transmitted data
+	const ERROR_COULDNT_SAVE = 15;
 
 	/**
 	 * @var string API endpoint URL
@@ -155,6 +168,28 @@ class PremiumAPI
 		return $this -> ParseResponse($Data);
 	}
 
+	/**
+	 * Method for submitting a new message
+	 *
+	 * @param array Message parameters
+	 *
+	 * @return array Operation result
+	 */
+	public function Messages_Create(array $Parameters)
+	{
+		if (empty($Parameters['IP']))
+		{
+			$Parameters['IP'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+		}
+
+		$Result = $this -> HTTPRequest(
+			$this -> APIURL.'Messages:Create',
+			$Parameters
+		);
+
+		return $this -> ParseResponse($Result);
+	}
+
 	// !Public utility methods
 
 	// !Private utility methods
@@ -162,11 +197,13 @@ class PremiumAPI
 	{
 		if (!is_array($Response))
 		{
-			return false; // $this -> SetError(self::ERROR_INVALID_RESPONSE, 'Invalid response from Premium, cannot parse');
+			// $this -> SetError(self::ERROR_INVALID_RESPONSE, 'Invalid response from Premium, cannot parse');
+			return false;
 		}
 
 		$this -> SetError(self::ERROR_NONE, '');
 
+		$Body = false;
 		if ($Response['Body'])
 		{
 			$Body = json_decode($Response['Body'], true);
@@ -174,15 +211,22 @@ class PremiumAPI
 
 		if (!$Response['Body'])
 		{
-			return $this -> SetError(self::ERROR_EMPTY_RESPONSE, 'Empty response from Premium');
+			$this -> SetError(self::ERROR_EMPTY_RESPONSE, 'Empty response from Premium');
 		}
 		elseif (!$Body)
 		{
-			return $this -> SetError(self::ERROR_INVALID_RESPONSE, 'Invalid response from Premium, cannot parse');
+			$ErrorMessage = 'Invalid response from Premium, cannot parse';
+			if (is_null($Body))
+			{
+				// JSON parsing error
+				$ErrorMessage = 'JSON parsing error'.(function_exists('json_last_error') ? ' #'.json_last_error() : '');
+			}
+
+			$this -> SetError(self::ERROR_INVALID_RESPONSE, $ErrorMessage);
 		}
 		elseif (!empty($Body['ErrNo']))
 		{
-			return $this -> SetError($Body['ErrNo'], $Body['Error']);
+			$this -> SetError($Body['ErrNo'], $Body['Error']);
 		}
 
 		return $Body;
@@ -193,7 +237,7 @@ class PremiumAPI
 		$this -> ErrNo = $ErrorCode;
 		$this -> Error = $ErrorMessage;
 
-		return false;
+		return null;
 	}
 
 	// !HTTP request utilities
