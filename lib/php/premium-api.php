@@ -2,7 +2,7 @@
 /**
  * Utility class for Premium API connection
  *
- * @version 1.0.1
+ * @version 1.0.2
  */
 class PremiumAPI
 {
