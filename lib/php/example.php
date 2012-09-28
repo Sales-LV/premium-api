@@ -61,7 +61,7 @@
 	$Message = $PremiumAPI -> Messages_Create(array(
 		'Phone' => 21234567,
 		'FirstName' => 'George',
-		'LastName' => 'Fullman',
+		'LastName' => 'Brown',
 		'ReceiptUnique' => '123/456',
 		'IP' => $_SERVER['REMOTE_ADDR']
 	));
