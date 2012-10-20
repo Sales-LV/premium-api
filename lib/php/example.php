@@ -9,7 +9,6 @@
 		if ($APIObject -> ErrNo)
 		{
 			echo 'Error #'.$APIObject -> ErrNo.': '.$APIObject -> Error;
-			exit;
 		}
 	}
 
