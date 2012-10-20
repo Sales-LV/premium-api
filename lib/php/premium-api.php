@@ -2,11 +2,11 @@
 /**
  * Utility class for Premium API connection
  *
- * @version 1.0.3
+ * @version 1.0.4
  */
 class PremiumAPI
 {
-	private static $Version = '1.0.3';
+	private static $Version = '1.0.4';
 	private static $UserAgent = 'SalesLV/Premium-API';
 	private static $VerifySSL = false;
 
@@ -44,11 +44,15 @@ class PremiumAPI
 	const ERROR_AFTER_CAMPAIGN_END = 14;
 	// Could not save transmitted data
 	const ERROR_COULDNT_SAVE = 15;
+	// Invalid API version. Should not happen unless something's seriously wrong on Premium side, this code was altered, or the HTTP request was mangled.
+	const ERROR_INVALID_API_VERSION = 16;
+	// Invalid data format requested. Same as above.
+	const ERROR_INVALID_DATA_FORMAT = 17;
 
 	/**
 	 * @var string API endpoint URL
 	 */
-	private static $URL = 'https://premium.sales.lv/API:1.0/';
+	private static $URL = 'https://premium.sales.lv/API:1.0:json/';
 
 	/**
 	 * @var string Premium API key.
