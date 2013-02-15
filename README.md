@@ -2,7 +2,7 @@ premium-api
 ===========
 
 Client API for Sales.lv **[Premium](http://www.sales.lv/lv/risinajumi/premium/)** service. In its essence **Premium** is a platform for
-implementing services based on mobile-originated (incoming from users) SMS processing. In practice there is a number of applications
+implementing services based on mobile-originated (incoming from users) SMS message processing. In practice there are a number of applications
 built upon this platform, for example, user message processing, SMS micropayment handling, lotteries, etc. (Lotteries are a special case
 as there is a lot of lottery-specific functionality implemented in Premium that goes above and beyond SMS processing).
 
