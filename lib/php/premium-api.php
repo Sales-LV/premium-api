@@ -2,12 +2,14 @@
 /**
  * Utility class for Premium API connection
  *
- * @version 1.0.4
+ * @version 1.1.0
  */
 class PremiumAPI
 {
-	private static $Version = '1.0.4';
+	private static $Version = '1.1.0';
 	private static $UserAgent = 'SalesLV/Premium-API';
+	private static $UAString = '';
+
 	private static $VerifySSL = false;
 
 	// Error constants
@@ -48,6 +50,23 @@ class PremiumAPI
 	const ERROR_INVALID_API_VERSION = 16;
 	// Invalid data format requested. Same as above.
 	const ERROR_INVALID_DATA_FORMAT = 17;
+	// 1.1.0: Attachment support
+	const ERROR_ATTACHMENTS_NOT_ALLOWED = 18;
+	// File type of the attachment is not permitted (e.g. only images are allowed and you're trying to upload a zip file.)
+	const ERROR_ATTACHMENT_TYPE_NOT_PERMITTED = 19;
+	// File upload failed, you chould notify the user and rectify the situation
+	const ERROR_ATTACHMENT_UPLOAD_FAILED = 20;
+	// Indicates that message data has been processed successfully but there was a problem with handling the attached file(s).
+	//	User should be notified to recitfy the sitation or inform them that their file was not saved.
+	const ERROR_MESSAGE_SUCCESSFUL_BUT_ATTACHMENT_FAILED = 21;
+	// The list of attachments passed to some method doesn't conform to the specification
+	const ERROR_MALFORMED_ATTACHMENT_ARRAY = 22;
+	// The file that should be added as an attachment was not accessible
+	const ERROR_ATTACHMENT_FILE_NOT_READABLE = 23;
+	// PHP version incompatible with this library
+	const ERROR_PHP_VERSION_INCOMPATIBLE = 24;
+	// Attachments upload not supported with the current configuration
+	const ERROR_ATTACHMENTS_NOT_SUPPORTED_WITH_THIS_METHOD = 25;
 
 	/**
 	 * @var string API endpoint URL
@@ -75,13 +94,13 @@ class PremiumAPI
 	 */
 	private $Error = '';
 
-	public $Debug = array(
-		'LastHTTPRequest' => array(
+	public $Debug = [
+		'LastHTTPRequest' => [
 			'URL' => '',
-			'Request' => array(),
-			'Response' => array()
-		)
-	);
+			'Request' => [],
+			'Response' => []
+		]
+	];
 
 	// !Public utility methods
 
@@ -92,6 +111,20 @@ class PremiumAPI
 	 */
 	public function __construct($Key, $CampaignCode)
 	{
+		self::$UAString = self::$UserAgent.'/'.self::$Version;
+		if (extension_loaded('http'))
+		{
+			self::$UAString .= '-http';
+		}
+		elseif (extension_loaded('curl'))
+		{
+			self::$UAString .= '-curl';
+		}
+		elseif (ini_get('allow_url_fopen'))
+		{
+			self::$UAString .= '-stream';
+		}
+
 		$this -> APIKey = $Key;
 		$this -> CampaignCode = $CampaignCode;
 
@@ -162,11 +195,11 @@ class PremiumAPI
 	{
 		$Data = $this -> HTTPRequest(
 			$this -> APIURL.'Messages:List',
-			array(
+			[
 				'Filter1' => json_encode($Parameters),
 				'Filter2' => $Parameters2 ? json_encode($Parameters2) : false,
 				'Offset' => (int)$Offset
-			)
+			]
 		);
 
 		return $this -> ParseResponse($Data);
@@ -176,19 +209,42 @@ class PremiumAPI
 	 * Method for submitting a new message
 	 *
 	 * @param array Message parameters
+	 * @param array Optional file attachments (array of file paths to upload). Should contain an array for each file with the following parameters
+	 *	(same as in the $_FILES array):
+	 *	- string name: Original file name
+	 *	- string type: File type
+	 *	- string tmp_name: Current path to file from where it can be read.
 	 *
 	 * @return array Operation result
 	 */
-	public function Messages_Create(array $Parameters)
+	public function Messages_Create(array $Parameters, array $Attachments = null)
 	{
 		if (empty($Parameters['IP']))
 		{
 			$Parameters['IP'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 		}
 
+		if ($Attachments)
+		{
+			foreach ($Attachments as $Attachment)
+			{
+				if (!isset($Attachment['tmp_name']) || !isset($Attachment['type']) || !isset($Attachment['name']))
+				{
+					return $this -> SetError(self::ERROR_MALFORMED_ATTACHMENT_ARRAY, 'Attachment list does not conform to specification');
+				}
+
+				if (!is_readable($Attachment['tmp_name']))
+				{
+					return $this -> SetError(self::ERROR_ATTACHMENT_FILE_NOT_READABLE, 'Attachment file "'.$Attachment['tmp_name'].'" was not readable');
+				}
+			}
+		}
+
 		$Result = $this -> HTTPRequest(
 			$this -> APIURL.'Messages:Create',
-			$Parameters
+			$Parameters,
+			null, // Additional headers
+			$Attachments // Attachment files
 		);
 
 		return $this -> ParseResponse($Result);
@@ -259,28 +315,32 @@ class PremiumAPI
 	 *	'Content' => string Response body 
 	 * )
 	 */
-	private function HTTPRequest($URL, array $POSTData = null, array $Headers = null)
+	private function HTTPRequest($URL, array $POSTData = null, array $Headers = null, array $Files = null)
 	{
 		$this -> Debug['LastHTTPRequest']['URL'] = $URL;
 		$this -> Debug['LastHTTPRequest']['Method'] = $POSTData ? 'POST' : 'GET';
 		$this -> Debug['LastHTTPRequest']['Request'] = $POSTData;
 		$this -> Debug['LastHTTPRequest']['Response'] = '';
 
-		$Result = array();
+		$Result = [];
 
 		try
 		{
 			if (extension_loaded('http'))
 			{
-				$Result = self::HTTPRequest_http($URL, $POSTData, $Headers);
+				$Result = self::HTTPRequest_http($URL, $POSTData, $Headers, $Files);
 			}
 			elseif (extension_loaded('curl'))
 			{
-				$Result = self::HTTPRequest_curl($URL, $POSTData, $Headers);
+				$Result = self::HTTPRequest_curl($URL, $POSTData, $Headers, $Files);
 			}
 			elseif (ini_get('allow_url_fopen'))
 			{
-				$Result = self::HTTPRequest_fopen($URL, $POSTData, $Headers);
+				if ($Files)
+				{
+					return $this -> SetError(self::ERROR_ATTACHMENTS_NOT_SUPPORTED_WITH_THIS_METHOD, 'Attachment upload not supported for this HTTP connection method (stream context,) please install curl or pecl_http');
+				}
+				$Result = self::HTTPRequest_fopen($URL, $POSTData, $Headers, $Files);
 			}
 			else
 			{
@@ -302,7 +362,7 @@ class PremiumAPI
 	/**
 	 * Utility method for making HTTP requests with the pecl_http extension, see HTTPRequest for more information
 	 */
-	private static function HTTPRequest_http($URL, array $POSTData = null, array $Headers = null)
+	private static function HTTPRequest_http($URL, array $POSTData = null, array $Headers = null, array $Files = null)
 	{
 		$Method = $POSTData ? HttpRequest::METH_POST : HttpRequest::METH_GET;
 
@@ -313,78 +373,99 @@ class PremiumAPI
   		}
   		$Request -> setPostFields($POSTData);
 
+		if ($Files)
+		{
+			foreach ($Files as $File)
+			{
+				$Request -> addPostFile($File['name'], $File['tmp_name'], $File['type']);
+			}
+		}
+
   		$Request -> send();
 
-  		return array(
+  		return [
   			'Headers' => array_merge(
-  				array(
+  				[
 	  				'Response Code' => $Request -> getResponseCode(),
 	  				'Response Status' => $Request -> getResponseStatus()
-	  			),
+	  			],
 	  			$Request -> getResponseHeader()
   			),
   			'Body' => $Request -> getResponseBody()
-  		);
+  		];
 	}
 
 	/**
 	 * Utility method for making HTTP requests with CURL. See PremiumAPI::HTTPRequest for more information
 	 */
-	private static function HTTPRequest_curl($URL, array $POSTData = null, array $Headers = null)
+	private static function HTTPRequest_curl($URL, array $POSTData = null, array $Headers = null, array $Files = null)
 	{
-		// Preparing request content
-		$POSTBody = $POSTData ? self::PrepareBody($POSTData) : '';
+		if ($Files)
+		{
+			if (!$POSTData)
+			{
+				$POSTData = [];
+			}
+
+			$Index = 0;
+			foreach ($Files as $File)
+			{
+				$POSTData['Attachment['.$Index.']'] = curl_file_create($File['tmp_name'], $File['type'], $File['name']);
+				$Index++;
+			}
+		}
 
 		// Preparing request headers
-		$Headers = self::PrepareHeaders($Headers, $URL, strlen($POSTBody));
+		$Headers = ['Expect' => ''];
+		$Headers = self::PrepareHeaders($Headers, $URL);
 
-		// Making the request
-		$cURLRequest = curl_init();
-		curl_setopt_array($cURLRequest, array(
+		$cURLParams = [
 			CURLOPT_URL => $URL, 
 			CURLOPT_HEADER => 1,
 			CURL_HTTP_VERSION_1_0 => true,
-			CURLOPT_POST => $POSTBody ? 1 : 0,
+			CURLOPT_POST => $POSTData ? 1 : 0,
 			CURLOPT_CONNECTTIMEOUT => 60,
 			CURLOPT_TIMEOUT => 120,
 			CURLOPT_MAXREDIRS => 5,
-			CURLOPT_USERAGENT => self::$UserAgent.'/'.self::$Version,
-			CURLOPT_POSTFIELDS => $POSTBody,
+			CURLOPT_FAILONERROR => 1,
+			CURLOPT_USERAGENT => self::$UAString,
+			CURLOPT_SAFE_UPLOAD => true,
+			CURLOPT_POSTFIELDS => $POSTData,
 			CURLOPT_ENCODING => 'gzip',
 			CURLOPT_RETURNTRANSFER => 1,
 			CURLOPT_HTTPHEADER => $Headers,
 			CURLOPT_SSL_VERIFYPEER => self::$VerifySSL
-		));
+		];
+
+		// Making the request
+		$cURLRequest = curl_init();
+		curl_setopt_array($cURLRequest, $cURLParams);
 		$ResponseBody = curl_exec($cURLRequest);
 		curl_close($cURLRequest);
 
-		$ResponseBody = str_replace(array("\r\n", "\n\r", "\r"), array("\n", "\n", "\n"), $ResponseBody);
+		$ResponseBody = str_replace(["\r\n", "\n\r", "\r"], ["\n", "\n", "\n"], $ResponseBody);
 		$ResponseParts = explode("\n\n", $ResponseBody);
 
-		$ResponseHeaders = array();
+		$ResponseHeaders = [];
 		if (count($ResponseParts) > 1)
 		{
 			$ResponseHeaders = self::ParseHeadersFromString($ResponseParts[0]);
 		}
 
 		$ResponseBody = isset($ResponseParts[1]) ? $ResponseParts[1] : $ResponseBody;
-		//if (isset($ResponseHeaders['Content-Encoding']) && $ResponseHeaders['Content-Encoding'] == 'gzip')
-		//{
-			//$ResponseBody = gzinflate($ResponseBody);
-		//}
 
-		return array(
+		return [
 			'Headers' => $ResponseHeaders,
 			'Body' => $ResponseBody
-		);
+		];
 	}
 
 	/**
 	 * Utility method for making the HTTP request with file_get_contents. See PremiumAPI::HTTPRequest for more information
 	 */
-	private static function HTTPRequest_fopen($URL, array $POSTData = null, array $Headers = null)
+	private static function HTTPRequest_fopen($URL, array $POSTData = null, array $Headers = null, array $Files = null)
 	{
-		// Preparing reqiest body
+		// Preparing request body
 		$POSTBody = $POSTData ? self::PrepareBody($POSTData) : '';
 
 		// Preparing headers
@@ -392,24 +473,24 @@ class PremiumAPI
 		$Headers = implode("\r\n", $Headers)."\r\n";
 
 		// Making the request
-		$Context = stream_context_create(array(
-			'http' => array(
+		$Context = stream_context_create([
+			'http' => [
 				'method' => $POSTBody ? 'POST' : 'GET',
 				'header' => $Headers,
 				'content' => $POSTBody,
 				'protocol_version' => 1.0
-			)
-		));
+			]
+		]);
 
 		$Content = file_get_contents($URL, false, $Context);
 
 		$ResponseHeaders = $http_response_header;
 		$ResponseHeaders = self::ParseHeadersFromArray($ResponseHeaders);
 
-		return array(
+		return [
 			'Headers' => $ResponseHeaders,
 			'Body' => $Content
-		);
+		];
 	}
 
 	/**
@@ -417,22 +498,25 @@ class PremiumAPI
 	 *
 	 * @param array Headers to send in addition to the default set (keys are names, values are content)
 	 * @param string URL that will be used for the request (for the "Host" header)
-	 * @param int Content length for the Content-Length header
+	 * @param int Optional content length for the Content-Length header
 	 *
 	 * return array Headers in a numeric array. Each item in the array is a separate header string containing both name and content
 	 */
-	private static function PrepareHeaders(array $Headers = null, $URL, $ContentLength)
+	private static function PrepareHeaders(array $Headers = null, $URL, $ContentLength = null)
 	{
 		$URLInfo = parse_url($URL);
 		$Host = $URLInfo['host'];
 
-		$DefaultHeaders = array(
+		$DefaultHeaders = [
 			'Host' => $Host,
 			'Connection' => 'close',
-			'Content-Type' => 'application/x-www-form-urlencoded',
-			'Content-Length' => $ContentLength,
-			'User-Agent' => self::$UserAgent.'/'.self::$Version
-		);
+			'User-Agent' => self::$UAString
+		];
+
+		if (!is_null($ContentLength))
+		{
+			$DefaultHeaders['Content-Length'] = $ContentLength;
+		}
 
 		if ($Headers)
 		{
@@ -443,7 +527,7 @@ class PremiumAPI
 			$Headers = $DefaultHeaders;
 		}
 
-		$Result = array();
+		$Result = [];
 		foreach ($Headers as $Name => $Content)
 		{
 			$Result[] = $Name.': '.$Content;
@@ -460,7 +544,7 @@ class PremiumAPI
 	 */
 	private static function PrepareBody(array $Data)
 	{
-		$POSTBody = array();
+		$POSTBody = [];
 		foreach ($Data as $Key => $Value)
 		{
 			$POSTBody[] = $Key.'='.urlencode($Value);
@@ -504,7 +588,7 @@ class PremiumAPI
 	 */
 	private static function ParseHeadersFromArray(array $Headers)
 	{
-		$Result = array();
+		$Result = [];
 
 		$CurrentHeader = 0;
 
