@@ -1,7 +1,8 @@
 <?php
 	require('premium-api.php');
 
-	define('API_KEY', '1234567890abcdef');
+	//define('API_KEY', '1234567890abcdef');
+	define('API_KEY', '8bc12d8cd273da9fcb78092580bbb6184bdaf121');
 	define('API_CAMPAIGN', 'demo');
 
 	function error_output(PremiumAPI $APIObject)
@@ -41,11 +42,11 @@
 
 	// Messages
 	echo '<h2>Message list retrieval</h2>';
-	$Messages = $PremiumAPI -> Messages_List(array(
+	$Messages = $PremiumAPI -> Messages_List([
 		'Time' => date('c', strtotime('2010-02-07'))
-	), array(
+	], [
 		'Time' => date('c', strtotime('2010-02-09'))
-	));
+	]);
 	debug_output($PremiumAPI);
 	error_output($PremiumAPI);
 	results_output($Messages);
@@ -57,14 +58,17 @@
 	results_output($Message);
 
 	echo '<h2>Create a new message</h2>';
-	$Message = $PremiumAPI -> Messages_Create(array(
+	$Message = $PremiumAPI -> Messages_Create([
 		'Phone' => 21234567,
 		'FirstName' => 'George',
 		'LastName' => 'Brown',
 		'ReceiptUnique' => '123/456',
 		'IP' => $_SERVER['REMOTE_ADDR']
-	));
+	],
+	[ // Attachments
+		['tmp_name' => getcwd().'/example.php', 'type' => 'text/php', 'name' => 'example.php'],
+		['tmp_name' => getcwd().'/premium-api.php', 'type' => 'text/php', 'name' => 'premium-api.php'],
+	]);
 	debug_output($PremiumAPI);
 	error_output($PremiumAPI);
 	results_output($Message);
-?>
