@@ -1,8 +1,7 @@
 <?php
 	require('premium-api.php');
 
-	//define('API_KEY', '1234567890abcdef');
-	define('API_KEY', '8bc12d8cd273da9fcb78092580bbb6184bdaf121');
+	define('API_KEY', '1234567890abcdef');
 	define('API_CAMPAIGN', 'demo');
 
 	function error_output(PremiumAPI $APIObject)

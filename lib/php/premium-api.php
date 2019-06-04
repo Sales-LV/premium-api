@@ -71,7 +71,7 @@ class PremiumAPI
 	/**
 	 * @var string API endpoint URL
 	 */
-	private static $URL = 'http://premium/API:1.0:json/';
+	private static $URL = 'https://premium.sales.lv/API:1.0:json/';
 
 	/**
 	 * @var string Premium API key.
