@@ -32,6 +32,9 @@ Library usage is [described in the wiki](https://github.com/Sales-LV/premium-api
 
 Changelog
 ------------
+1.1.1:
+- New error codes added for attachments
+
 1.1.0:
 - compatibility moved up to 5.5;
 - some error messages indicate data unavailability due to GDPR limitations;
