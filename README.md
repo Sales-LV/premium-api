@@ -32,6 +32,13 @@ Library usage is [described in the wiki](https://github.com/Sales-LV/premium-api
 
 Changelog
 ------------
+1.2.0:
+- Some message parameters can be passed as arrays to submit multiple values (if permitted in campaign settings.)
+- An error code is returned when registration count per participant has reached a certain limit, if it's set up like that in campaign settings.
+
+1.1.1:
+- New error codes added for attachments
+
 1.1.0:
 - compatibility moved up to 5.5;
 - some error messages indicate data unavailability due to GDPR limitations;

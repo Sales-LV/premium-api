@@ -2,11 +2,11 @@
 /**
  * Utility class for Premium API connection
  *
- * @version 1.1.0
+ * @version 1.2.0
  */
 class PremiumAPI
 {
-	private static $Version = '1.1.0';
+	private static $Version = '1.2.0';
 	private static $UserAgent = 'SalesLV/Premium-API';
 	private static $UAString = '';
 
@@ -67,6 +67,15 @@ class PremiumAPI
 	const ERROR_PHP_VERSION_INCOMPATIBLE = 24;
 	// Attachments upload not supported with the current configuration
 	const ERROR_ATTACHMENTS_NOT_SUPPORTED_WITH_THIS_METHOD = 25;
+	// Attachment file size too large
+	const ERROR_ATTACHMENT_FILE_TOO_LARGE = 26;
+	// Total upload size too large (sum of all files)
+	const ERROR_TOTAL_UPLOAD_SIZE_TOO_LARGE = 27;
+	// Number of registrations for this participant has reached the set limit (e.g. once daily, once weekly, etc.,
+	//	depending on campaign settings.
+	const ERROR_REGISTRATION_LIMIT_REACHED = 28;
+	// Multiple values for parameters not allowed by campaign settings
+	const ERROR_PARAM_ARRAYS_NOT_ALLOWED = 29;
 
 	/**
 	 * @var string API endpoint URL
@@ -222,6 +231,15 @@ class PremiumAPI
 		if (empty($Parameters['IP']))
 		{
 			$Parameters['IP'] = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+		}
+
+		$ArrayParameterTypes = ['ReceiptUnique', 'Receipt', 'Code'];
+		foreach ($ArrayParameterTypes as $ArrayParameterType)
+		{
+			if (isset($Parameters[$ArrayParameterType]) && is_array($Parameters[$ArrayParameterType]))
+			{
+				$Parameters[$ArrayParameterType] = json_encode($Parameters[$ArrayParameterType]);
+			}
 		}
 
 		if ($Attachments)
