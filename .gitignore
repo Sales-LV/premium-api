@@ -2,3 +2,4 @@ premium-api.nginx.conf
 log/*
 *.DS_Store
 lib/Downloads/*
+index.php
