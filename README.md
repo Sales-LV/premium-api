@@ -24,14 +24,18 @@ PHP client library is located in `lib/php/premium-api.php`. An usage example is 
 Requirements:
 * [PHP 5.5 or newer](http://www.php.net/)
 * One of these:
-    * [pecl_http](http://pecl.php.net/package/pecl_http) extension is recommended but not mandatory.
-    * enabled [cURL library](http://www.php.net/manual/en/book.curl.php).
+    * [cURL extension](http://www.php.net/manual/en/book.curl.php).
+    * [pecl_http](http://pecl.php.net/package/pecl_http) extension.
     * [allow_url_fopen](http://php.net/manual/en/filesystem.configuration.php) set to true (attachment file upload is not currently supported for this method.)
 
 Library usage is [described in the wiki](https://github.com/Sales-LV/premium-api/wiki/PHP-API-library).
 
 Changelog
 ------------
+1.3.0:
+- Changed to prefer cURL for making HTTP requests.
+- PHP version number passed to Premium in user agent.
+
 1.2.1:
 - Minor fixes for PHP 8.1 compatibility.
 

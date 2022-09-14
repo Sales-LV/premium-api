@@ -6,7 +6,7 @@
  */
 class PremiumAPI
 {
-	private static $Version = '1.2.1';
+	private static $Version = '1.3.0';
 	private static $UserAgent = 'SalesLV/Premium-API';
 	private static $UAString = '';
 
@@ -133,6 +133,7 @@ class PremiumAPI
 		{
 			self::$UAString .= '-stream';
 		}
+		self::$UAString .= '/php'.PHP_VERSION;
 
 		$this -> APIKey = $Key;
 		$this -> CampaignCode = $CampaignCode;
@@ -187,7 +188,6 @@ class PremiumAPI
 		$Data = $this -> HTTPRequest($this -> APIURL.'Messages:Get/ID:'.(int)$ID);
 		return $this -> ParseResponse($Data);
 	}
-
 
 	/**
 	 * Method for retrieving a message list from a campaign by the given parameters
@@ -325,7 +325,8 @@ class PremiumAPI
 	 *
 	 * @param string URL to make the request to
 	 * @param array POST data if it is a POST request. If this is empty, a GET request will be made, if populated - POST. Optional.
-	 * @param array Additional headers to pass to the service, optional.
+	 * @param array Additional headers to pass to the service, optional. Each item in the array is a string with a complete header including name
+	 *  and value, e.g. "Content-Type: application/x-www-form-urlencoded".
 	 *
 	 * @return array Array containing response data: array(
 	 *	'Code' => int HTTP status code (200, 403, etc.),
@@ -342,15 +343,21 @@ class PremiumAPI
 
 		$Result = [];
 
+		if (!$Headers)
+		{
+			$Headers = [];
+		}
+		$Headers[] = 'Content-Type: application/x-www-form-urlencoded';
+
 		try
 		{
-			if (extension_loaded('http'))
-			{
-				$Result = self::HTTPRequest_http($URL, $POSTData, $Headers, $Files);
-			}
-			elseif (extension_loaded('curl'))
+			if (extension_loaded('curl'))
 			{
 				$Result = self::HTTPRequest_curl($URL, $POSTData, $Headers, $Files);
+			}
+			elseif (extension_loaded('http'))
+			{
+				$Result = self::HTTPRequest_http($URL, $POSTData, $Headers, $Files);
 			}
 			elseif (ini_get('allow_url_fopen'))
 			{
