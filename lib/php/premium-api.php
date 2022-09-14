@@ -6,7 +6,7 @@
  */
 class PremiumAPI
 {
-	private static $Version = '1.2.0';
+	private static $Version = '1.2.1';
 	private static $UserAgent = 'SalesLV/Premium-API';
 	private static $UAString = '';
 
@@ -440,7 +440,6 @@ class PremiumAPI
 		$cURLParams = [
 			CURLOPT_URL => $URL, 
 			CURLOPT_HEADER => 1,
-			CURL_HTTP_VERSION_1_0 => true,
 			CURLOPT_POST => $POSTData ? 1 : 0,
 			CURLOPT_CONNECTTIMEOUT => 60,
 			CURLOPT_TIMEOUT => 120,

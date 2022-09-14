@@ -3,3 +3,4 @@ log/*
 *.DS_Store
 lib/Downloads/*
 index.php
+.nova
