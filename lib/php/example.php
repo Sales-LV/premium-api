@@ -56,6 +56,7 @@
 	error_output($PremiumAPI);
 	results_output($Message);
 
+/*
 	echo '<h2>Create a new message</h2>';
 	$Message = $PremiumAPI -> Messages_Create([
 		'Phone' => 21234567,
@@ -71,13 +72,13 @@
 	debug_output($PremiumAPI);
 	error_output($PremiumAPI);
 	results_output($Message);
-
+*/
 	echo '<h2>Create a new message with multiple codes</h2>';
 	$Message = $PremiumAPI -> Messages_Create([
 		'Phone' => 21234567,
 		'FirstName' => 'George',
 		'LastName' => 'Brown',
-		'ReceiptUnique' => ['123/456', '321/654', '654/321'],
+		'ReceiptUnique' => ['852/zz-647', rand(100, 1000).'/-w'.rand(100, 1000), rand(100, 1000).'f/'.rand(100, 1000)],
 		'IP' => $_SERVER['REMOTE_ADDR']
 	],
 	[ // Attachments
