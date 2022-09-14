@@ -32,6 +32,9 @@ Library usage is [described in the wiki](https://github.com/Sales-LV/premium-api
 
 Changelog
 ------------
+1.2.1:
+- Minor fixes for PHP 8.1 compatibility.
+
 1.2.0:
 - Some message parameters can be passed as arrays to submit multiple values (if permitted in campaign settings.)
 - An error code is returned when registration count per participant has reached a certain limit, if it's set up like that in campaign settings.
