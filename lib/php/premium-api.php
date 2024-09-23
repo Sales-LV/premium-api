@@ -2,11 +2,11 @@
 /**
  * Utility class for Premium API connection
  *
- * @version 1.2.0
+ * @version 1.3.1
  */
 class PremiumAPI
 {
-	private static $Version = '1.3.0';
+	private static $Version = '1.3.1';
 	private static $UserAgent = 'SalesLV/Premium-API';
 	private static $UAString = '';
 
@@ -451,7 +451,6 @@ class PremiumAPI
 			CURLOPT_CONNECTTIMEOUT => 60,
 			CURLOPT_TIMEOUT => 120,
 			CURLOPT_MAXREDIRS => 5,
-			CURLOPT_FAILONERROR => 1,
 			CURLOPT_USERAGENT => self::$UAString,
 			CURLOPT_SAFE_UPLOAD => true,
 			CURLOPT_POSTFIELDS => $POSTData,
